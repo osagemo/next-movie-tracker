@@ -28,5 +28,5 @@ export default withTRPC<AppRouter>({
   /**
    * @link https://trpc.io/docs/ssr
    */
-  ssr: false, // broken until Vercel fixes https://github.com/vercel/next.js/issues/36115 > next 12.1.5
+  ssr: false,
 })(MyApp);

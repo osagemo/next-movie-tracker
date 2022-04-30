@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  shadowDatabaseUrl    = env("SHADOW_URL")
+  referentialIntegrity = "prisma"
+}
+
+model Movie {
+  MovieId        Int               @id @default(autoincrement())
+  ImdbId         String            @db.VarChar(50)
+  Title          String            @db.VarChar(255)
+  ReleaseDateUtc DateTime
+  ImageUrl       String            @db.VarChar(500)
+  MovieLists     MovieList_Movie[]
+
+  @@map("Movies")
+}
+
+model MovieList {
+  MovieListId Int               @id @default(autoincrement())
+  Name        String
+  Movies      MovieList_Movie[]
+
+  @@map("MovieLists")
+}
+
+model MovieList_Movie {
+  Movie       Movie     @relation(fields: [MovieId], references: [MovieId])
+  MovieId     Int
+  MovieList   MovieList @relation(fields: [MovieListId], references: [MovieListId])
+  MovieListId Int
+  AddedAt     DateTime  @default(now())
+
+  @@id([MovieId, MovieListId])
+  @@map("MovieLists_Movies")
+}
