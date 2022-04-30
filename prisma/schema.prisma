@@ -14,31 +14,77 @@ datasource db {
 }
 
 model Movie {
-  MovieId        Int               @id @default(autoincrement())
-  ImdbId         String            @db.VarChar(50)
-  Title          String            @db.VarChar(255)
-  ReleaseDateUtc DateTime
-  ImageUrl       String            @db.VarChar(500)
-  MovieLists     MovieList_Movie[]
+  id             Int               @id @default(autoincrement())
+  imdbId         String            @db.VarChar(50)
+  title          String            @db.VarChar(255)
+  releaseDateUtc DateTime
+  imageUrl       String            @db.VarChar(500)
+  movieLists     MovieList_Movie[]
 
   @@map("Movies")
 }
 
 model MovieList {
-  MovieListId Int               @id @default(autoincrement())
-  Name        String
-  Movies      MovieList_Movie[]
+  id     Int               @id @default(autoincrement())
+  name   String
+  movies MovieList_Movie[]
 
   @@map("MovieLists")
 }
 
 model MovieList_Movie {
-  Movie       Movie     @relation(fields: [MovieId], references: [MovieId])
-  MovieId     Int
-  MovieList   MovieList @relation(fields: [MovieListId], references: [MovieListId])
-  MovieListId Int
-  AddedAt     DateTime  @default(now())
+  movie       Movie     @relation(fields: [movieId], references: [id])
+  movieId     Int
+  movieList   MovieList @relation(fields: [movieListId], references: [id])
+  movieListId Int
+  addedAt     DateTime  @default(now())
 
-  @@id([MovieId, MovieListId])
+  @@id([movieId, movieListId])
   @@map("MovieLists_Movies")
+}
+
+//// NextAuth Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
