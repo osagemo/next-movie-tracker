@@ -15,7 +15,7 @@ Table MovieLists {
   id Int [pk, increment]
   name String [not null]
   movies MovieList_Movie [not null]
-  User_MovieList User_MovieList [not null]
+  users User_MovieList [not null]
 }
 
 Table MovieLists_Movies {
@@ -80,7 +80,7 @@ Table User {
   image String
   accounts Account [not null]
   sessions Session [not null]
-  User_MovieList User_MovieList [not null]
+  movielists User_MovieList [not null]
 }
 
 Table VerificationToken {
