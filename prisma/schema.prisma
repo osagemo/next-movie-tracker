@@ -34,6 +34,7 @@ model MovieList {
   movies MovieList_Movie[]
 
   @@map("MovieLists")
+  User_MovieList User_MovieList[]
 }
 
 model MovieList_Movie {
@@ -45,6 +46,17 @@ model MovieList_Movie {
 
   @@id([movieId, movieListId])
   @@map("MovieLists_Movies")
+}
+
+model User_MovieList {
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  movieList   MovieList @relation(fields: [movieListId], references: [id])
+  movieListId Int
+  addedAt     DateTime  @default(now())
+
+  @@id([userId, movieListId])
+  @@map("Users_MovieLists")
 }
 
 //// NextAuth Models
@@ -76,13 +88,14 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id             String           @id @default(cuid())
+  name           String?
+  email          String?          @unique
+  emailVerified  DateTime?
+  image          String?
+  accounts       Account[]
+  sessions       Session[]
+  User_MovieList User_MovieList[]
 }
 
 model VerificationToken {
