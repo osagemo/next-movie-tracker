@@ -29,9 +29,10 @@ model Movie {
 }
 
 model MovieList {
-  id     Int               @id @default(autoincrement())
-  name   String
-  movies MovieList_Movie[]
+  id       Int               @id @default(autoincrement())
+  name     String
+  movies   MovieList_Movie[]
+  listType ListType
 
   users User_MovieList[]
   @@map("MovieLists")
@@ -59,7 +60,24 @@ model User_MovieList {
   @@map("Users_MovieLists")
 }
 
+enum ListType {
+  SEEN
+  WANNA
+}
+
 //// NextAuth Models
+
+model User {
+  id            String           @id @default(cuid())
+  name          String?
+  email         String?          @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  movielists    User_MovieList[]
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -85,17 +103,6 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-  id            String           @id @default(cuid())
-  name          String?
-  email         String?          @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  movielists    User_MovieList[]
 }
 
 model VerificationToken {

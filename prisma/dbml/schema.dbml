@@ -15,6 +15,7 @@ Table MovieLists {
   id Int [pk, increment]
   name String [not null]
   movies MovieList_Movie [not null]
+  listType ListType [not null]
   users User_MovieList [not null]
 }
 
@@ -42,6 +43,17 @@ Table Users_MovieLists {
   }
 }
 
+Table User {
+  id String [pk]
+  name String
+  email String [unique]
+  emailVerified DateTime
+  image String
+  accounts Account [not null]
+  sessions Session [not null]
+  movielists User_MovieList [not null]
+}
+
 Table Account {
   id String [pk]
   userId String [not null]
@@ -60,8 +72,6 @@ Table Account {
   indexes {
     (provider, providerAccountId) [unique]
   }
-
-  Note: '/ NextAuth Models'
 }
 
 Table Session {
@@ -72,17 +82,6 @@ Table Session {
   user User [not null]
 }
 
-Table User {
-  id String [pk]
-  name String
-  email String [unique]
-  emailVerified DateTime
-  image String
-  accounts Account [not null]
-  sessions Session [not null]
-  movielists User_MovieList [not null]
-}
-
 Table VerificationToken {
   identifier String [not null]
   token String [unique, not null]
@@ -91,6 +90,11 @@ Table VerificationToken {
   indexes {
     (identifier, token) [unique]
   }
+}
+
+Enum ListType {
+  SEEN
+  WANNA
 }
 
 Ref: MovieList_Movie.movieId > Movie.id
