@@ -1,0 +1,106 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Movies {
+  id Int [pk, increment]
+  imdbId String [not null]
+  title String [not null]
+  releaseDateUtc DateTime [not null]
+  imageUrl String [not null]
+  movieLists MovieList_Movie [not null]
+}
+
+Table MovieLists {
+  id Int [pk, increment]
+  name String [not null]
+  movies MovieList_Movie [not null]
+  User_MovieList User_MovieList [not null]
+}
+
+Table MovieLists_Movies {
+  movie Movie [not null]
+  movieId Int [not null]
+  movieList MovieList [not null]
+  movieListId Int [not null]
+  addedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (movieId, movieListId) [pk]
+  }
+}
+
+Table Users_MovieLists {
+  user User [not null]
+  userId String [not null]
+  movieList MovieList [not null]
+  movieListId Int [not null]
+  addedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (userId, movieListId) [pk]
+  }
+}
+
+Table Account {
+  id String [pk]
+  userId String [not null]
+  type String [not null]
+  provider String [not null]
+  providerAccountId String [not null]
+  refresh_token String
+  access_token String
+  expires_at Int
+  token_type String
+  scope String
+  id_token String
+  session_state String
+  user User [not null]
+
+  indexes {
+    (provider, providerAccountId) [unique]
+  }
+
+  Note: '/ NextAuth Models'
+}
+
+Table Session {
+  id String [pk]
+  sessionToken String [unique, not null]
+  userId String [not null]
+  expires DateTime [not null]
+  user User [not null]
+}
+
+Table User {
+  id String [pk]
+  name String
+  email String [unique]
+  emailVerified DateTime
+  image String
+  accounts Account [not null]
+  sessions Session [not null]
+  User_MovieList User_MovieList [not null]
+}
+
+Table VerificationToken {
+  identifier String [not null]
+  token String [unique, not null]
+  expires DateTime [not null]
+
+  indexes {
+    (identifier, token) [unique]
+  }
+}
+
+Ref: MovieList_Movie.movieId > Movie.id
+
+Ref: MovieList_Movie.movieListId > MovieList.id
+
+Ref: User_MovieList.userId > User.id
+
+Ref: User_MovieList.movieListId > MovieList.id
+
+Ref: Account.userId > User.id [delete: Cascade]
+
+Ref: Session.userId > User.id [delete: Cascade]
