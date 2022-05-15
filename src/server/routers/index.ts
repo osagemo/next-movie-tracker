@@ -3,6 +3,7 @@ import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { createRouter } from "../context";
 import { prisma } from "@/server/utils/prisma";
+import { OmdbSearchMovie } from "@/utils/omdb";
 
 const AddMovie = z.object({
   imdbId: z.string(),
@@ -10,6 +11,8 @@ const AddMovie = z.object({
   releaseDate: z.string(),
   imageUrl: z.string(),
 });
+
+const omdbApiKey = process.env.NEXT_PUBLIC_OMDB_API_KEY;
 
 export type AddMovie = z.infer<typeof AddMovie>;
 // prettier-ignore
@@ -20,6 +23,20 @@ export const appRouter = createRouter()
         code: "UNAUTHORIZED",
       });
     return next();
+  })
+  .query("searchMoviesByTitle", {
+    input: z.object({
+      queryString: z.string().min(3),
+      page: z.number().nullish()
+    }),
+    async resolve({input, ctx}) {
+      let url = `http://www.omdbapi.com/?apikey=${omdbApiKey}&s=${input.queryString}&p=${input.page ?? 1}`;
+      const response = await fetch(url);
+      const responseJson = await response.json();
+      const foundMovies = responseJson.Search as OmdbSearchMovie[];
+
+      return {result: foundMovies};
+    }
   })
   // TODO: move logic to a service
   .query("getDefaultMovieLists", {
@@ -70,22 +87,26 @@ export const appRouter = createRouter()
   })
   .mutation("addMovieToList", {
     input: z.object({
-      movie: AddMovie,
+      imdbId: z.string(),
       movieListId: z.number().positive()
     }),
     async resolve({ input, ctx }) {
-      const movie = input.movie;
-      const releaseDateUtc = new Date(movie.releaseDate);
+      const url = `http://www.omdbapi.com/?apikey=${omdbApiKey}&i=${input.imdbId}`;
+      const response = await fetch(url);
+      const responseJson: any = await response.json();
+      if (responseJson.hasOwnProperty("Error"))
+        throw new Error("Invalid imdb ID");
+      
       const movieList = await prisma.movieList.findUnique({where: {id: input.movieListId}});
       if (!movieList)
         throw new Error("No movie list for provided id");
 
       return await prisma.movie.create({
         data: {
-          title: movie.title,
-          imageUrl: movie.imageUrl,
-          imdbId: movie.imdbId,
-          releaseDateUtc,
+          title: responseJson.Title,
+          imageUrl: responseJson.Poster,
+          imdbId: responseJson.imdbID,
+          releaseDateUtc: new Date(responseJson.Released),
           movieLists: {
             create: {
               movieListId: movieList.id

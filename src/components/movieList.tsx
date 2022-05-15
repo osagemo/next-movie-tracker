@@ -1,24 +1,42 @@
 import { trpc } from "../utils/trpc";
 import { signOut } from "next-auth/react";
-import { getAddMovieFromOmdbMovie } from "@/utils/omdb";
+import { getAddMovieFromFullOmdbMovie } from "@/utils/omdb";
+import { useCallback, useEffect, useState } from "react";
+import MovieSearch from "./MovieSearch";
+import { debounce } from "@/utils/misc";
+import { AddMovie } from "@/server/routers";
+import MovieSearchResults from "./MovieSearchResults";
 
 type MovieListProps = {
   userName: string;
 };
 const MovieList = ({ userName }: MovieListProps) => {
+  const utils = trpc.useContext();
+  const [queryString, setQueryString] = useState("");
   const { data: movieLists } = trpc.useQuery(["getDefaultMovieLists"], {
     refetchInterval: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
-  const addMovie = trpc.useMutation("addMovieToList");
+
+  const { data: searchResult } = trpc.useQuery(
+    ["searchMoviesByTitle", { queryString: queryString }],
+    {
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      enabled: Boolean(queryString), // disable until we have a value
+    }
+  );
+  const addMovie = trpc.useMutation("addMovieToList", {
+    async onSuccess() {
+      await utils.invalidateQueries(["getDefaultMovieLists"]);
+    },
+  });
   const addDummyMovie = async () => {
-    const url = "http://www.omdbapi.com/?apikey=35dd7a54&i=tt1392190";
-    const response = await fetch(url);
-    const movie = await response.json();
     const movieListId = movieLists?.movieLists[0].id ?? 0;
     await addMovie.mutate({
-      movie: getAddMovieFromOmdbMovie(movie),
+      imdbId: "tt1392190",
       movieListId,
     });
   };
@@ -31,9 +49,12 @@ const MovieList = ({ userName }: MovieListProps) => {
       <button onClick={() => signOut()}>Sign Out</button>
       <div className="text-center text-3xl">
         <div>{userName}&apos;s Movie tracker</div>
-        <div>You have {movieLists.movieLists.length} lists</div>
       </div>
-      <div className="p-5 flex justify-between items-center w-1/2">
+      <div className="w-1/2 flex flex-col">
+        <MovieSearch onSearchChange={setQueryString} />
+        <MovieSearchResults omdbMovies={searchResult?.result} />
+      </div>
+      <div className="p-5 flex justify-between items-center w-1/2 ">
         <div>
           <h3>{movieLists.movieLists[0].name}</h3>
           <div className="bg-gray-100 h-96 w-80"></div>

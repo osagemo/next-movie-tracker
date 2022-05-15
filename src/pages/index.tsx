@@ -1,7 +1,6 @@
 import type { NextPage } from "next";
-import { trpc } from "../utils/trpc";
 import { useSession, signIn, signOut } from "next-auth/react";
-import MovieList from "@/components/movieList";
+import MovieList from "@/components/MovieList";
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
