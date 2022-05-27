@@ -1,45 +1,87 @@
 import { trpc } from "../utils/trpc";
 import { signOut } from "next-auth/react";
-import { getAddMovieFromOmdbMovie } from "@/utils/omdb";
+import { getAddMovieFromFullOmdbMovie } from "@/utils/omdb";
+import { useCallback, useEffect, useState } from "react";
+import MovieSearch from "./MovieSearch";
+import { debounce } from "@/utils/misc";
+import { AddMovie, MovieListType } from "@/server/routers";
+import MovieSearchResults from "./MovieSearchResults";
 
 type MovieListProps = {
   userName: string;
 };
 const MovieList = ({ userName }: MovieListProps) => {
-  const { data: movieLists } = trpc.useQuery(["getDefaultMovieLists"], {
+  const utils = trpc.useContext();
+  const [queryString, setQueryString] = useState("");
+  const { data: movieListsResponse } = trpc.useQuery(["getDefaultMovieLists"], {
     refetchInterval: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
-  const addMovie = trpc.useMutation("addMovieToList");
+
+  const { data: searchResult } = trpc.useQuery(
+    ["searchMoviesByTitle", { queryString: queryString }],
+    {
+      refetchInterval: false,
+      refetchOnReconnect: false,
+      refetchOnWindowFocus: false,
+      enabled: Boolean(queryString), // disable until we have a value
+    }
+  );
+  const addMovie = trpc.useMutation("addMovieToList", {
+    async onSuccess() {
+      await utils.invalidateQueries(["getDefaultMovieLists"]);
+    },
+  });
   const addDummyMovie = async () => {
-    const url = "http://www.omdbapi.com/?apikey=35dd7a54&i=tt1392190";
-    const response = await fetch(url);
-    const movie = await response.json();
-    const movieListId = movieLists?.movieLists[0].id ?? 0;
+    const movieListId = movieListsResponse?.movieLists[0].id ?? 0;
     await addMovie.mutate({
-      movie: getAddMovieFromOmdbMovie(movie),
+      imdbId: "tt1392190",
       movieListId,
     });
   };
 
-  if (!movieLists) {
+  if (!movieListsResponse) {
     return <div>Loading...</div>;
   }
+
+  const addMovieToList = async (
+    imdbId: string,
+    movieListType: MovieListType
+  ) => {
+    const movieListId = movieListsResponse?.movieLists.find(
+      (l) => l.listType === movieListType
+    )?.id;
+    if (!movieListId)
+      throw `No movie list found for specified list type: ${movieListType}`;
+
+    await addMovie.mutate({
+      imdbId,
+      movieListId,
+    });
+  };
+
   return (
     <>
       <button onClick={() => signOut()}>Sign Out</button>
       <div className="text-center text-3xl">
         <div>{userName}&apos;s Movie tracker</div>
-        <div>You have {movieLists.movieLists.length} lists</div>
       </div>
-      <div className="p-5 flex justify-between items-center w-1/2">
+      <div className="w-1/2 flex flex-col">
+        <MovieSearch onSearchChange={setQueryString} />
+        <MovieSearchResults
+          addMovieToHaveSeen={(imdbId) => addMovieToList(imdbId, "SEEN")}
+          addMovieToWannaSee={(imdbId) => addMovieToList(imdbId, "WANNA")}
+          omdbMovies={searchResult?.result}
+        />
+      </div>
+      <div className="p-5 flex justify-between items-center w-1/2 ">
         <div>
-          <h3>{movieLists.movieLists[0].name}</h3>
+          <h3>{movieListsResponse.movieLists[0].name}</h3>
           <div className="bg-gray-100 h-96 w-80"></div>
         </div>
         <div>
-          <h3>{movieLists.movieLists[1].name}</h3>
+          <h3>{movieListsResponse.movieLists[1].name}</h3>
           <div className="bg-gray-100 h-96 w-80"></div>
         </div>
       </div>

@@ -1,8 +1,10 @@
-import "tailwindcss/tailwind.css";
+import Head from "next/head";
 import { AppType } from "next/dist/shared/lib/utils";
 import { withTRPC } from "@trpc/next";
-import type { AppRouter } from "@/server/routers";
 import { SessionProvider } from "next-auth/react";
+import type { AppRouter } from "@/server/routers";
+
+import "tailwindcss/tailwind.css";
 import "@/styles/globals.css";
 
 const MyApp: AppType = ({
@@ -11,6 +13,9 @@ const MyApp: AppType = ({
 }) => {
   return (
     <SessionProvider session={session}>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
       <Component {...pageProps} />
     </SessionProvider>
   );
