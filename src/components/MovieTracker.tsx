@@ -5,10 +5,10 @@ import MovieSearch from "./MovieSearch";
 import { MovieListType } from "@/server/routers";
 import MovieSearchResults from "./MovieSearchResults";
 
-type MovieListProps = {
+type MovieTrackerProps = {
   userName: string;
 };
-const MovieList = ({ userName }: MovieListProps) => {
+const MovieTracker = ({ userName }: MovieTrackerProps) => {
   const utils = trpc.useContext();
   const [queryString, setQueryString] = useState("");
   const { data: movieListsResponse } = trpc.useQuery(["getDefaultMovieLists"], {
@@ -88,4 +88,4 @@ const MovieList = ({ userName }: MovieListProps) => {
   );
 };
 
-export default MovieList;
+export default MovieTracker;
