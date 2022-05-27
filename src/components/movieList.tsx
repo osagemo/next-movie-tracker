@@ -1,10 +1,8 @@
 import { trpc } from "../utils/trpc";
 import { signOut } from "next-auth/react";
-import { getAddMovieFromFullOmdbMovie } from "@/utils/omdb";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import MovieSearch from "./MovieSearch";
-import { debounce } from "@/utils/misc";
-import { AddMovie, MovieListType } from "@/server/routers";
+import { MovieListType } from "@/server/routers";
 import MovieSearchResults from "./MovieSearchResults";
 
 type MovieListProps = {
