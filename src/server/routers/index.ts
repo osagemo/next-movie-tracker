@@ -2,7 +2,6 @@
 import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { createRouter } from "../context";
-import { MovieList } from "@prisma/client";
 import movieListRepository from "../repositories/movieListRepository";
 import omdbApi from "../utils/omdbApi";
 
@@ -62,4 +61,3 @@ export const appRouter = createRouter()
   });
 
 export type AppRouter = typeof appRouter;
-export type MovieListType = MovieList["listType"];

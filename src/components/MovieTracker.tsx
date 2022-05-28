@@ -2,8 +2,9 @@ import { trpc } from "../utils/trpc";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import MovieSearch from "./MovieSearch";
-import { MovieListType } from "@/server/routers";
 import MovieSearchResults from "./MovieSearchResults";
+import { MovieListType } from "@/server/utils/prisma";
+import MovieList from "./MovieList";
 
 type MovieTrackerProps = {
   userName: string;
@@ -31,13 +32,6 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
       await utils.invalidateQueries(["getDefaultMovieLists"]);
     },
   });
-  const addDummyMovie = async () => {
-    const movieListId = movieListsResponse?.movieLists[0].id ?? 0;
-    await addMovie.mutate({
-      imdbId: "tt1392190",
-      movieListId,
-    });
-  };
 
   if (!movieListsResponse) {
     return <div>Loading...</div>;
@@ -76,14 +70,13 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
       <div className="p-5 flex justify-between items-center w-1/2 ">
         <div>
           <h3>{movieListsResponse.movieLists[0].name}</h3>
-          <div className="bg-gray-100 h-96 w-80"></div>
+          <MovieList movieList={movieListsResponse.movieLists[0]} />
         </div>
         <div>
           <h3>{movieListsResponse.movieLists[1].name}</h3>
-          <div className="bg-gray-100 h-96 w-80"></div>
+          <MovieList movieList={movieListsResponse.movieLists[1]} />
         </div>
       </div>
-      <button onClick={() => addDummyMovie()}>Add dummy</button>
     </>
   );
 };

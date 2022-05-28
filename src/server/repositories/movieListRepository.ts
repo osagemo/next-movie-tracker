@@ -1,8 +1,10 @@
-import { prisma } from "@/server/utils/prisma";
+import { MovieListWithMovies, prisma } from "@/server/utils/prisma";
 import { Prisma } from "@prisma/client";
 
 const movieListRepository = {
-  async getSystemMovieListsForUser(userId: string) {
+  async getSystemMovieListsForUser(
+    userId: string
+  ): Promise<MovieListWithMovies[]> {
     const userMovieListCount = await prisma.user_MovieList.count({
       where: { userId },
     });
@@ -20,10 +22,19 @@ const movieListRepository = {
         name: { startsWith: "system" },
       },
       include: {
-        movies: true,
+        movies: {
+          select: {
+            movie: true,
+          },
+        },
       },
     });
-    return movieLists;
+
+    // We need to flatten the response as "movies" from the include statement will refer to the many2many table
+    const flattened = movieLists.map((list) => {
+      return { ...list, movies: list.movies.map((movie) => movie.movie) };
+    });
+    return flattened;
   },
   async createSystemMovieListsForUser(userId: string) {
     const [seenList, wannaList] = await prisma.$transaction([

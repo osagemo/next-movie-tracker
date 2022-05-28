@@ -33,7 +33,7 @@ const MovieSearchResults = ({
           <div className="movie-buttons absolute top-0 w-full flex justify-between p-2">
             <button
               className="bg-emerald-700 p-2 rounded"
-              onClick={() => addMovieToWannaSee(movie.imdbID)}
+              onClick={() => addMovieToHaveSeen(movie.imdbID)}
             >
               Have seen
             </button>
