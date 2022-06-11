@@ -2,15 +2,18 @@ import { OmdbSearchMovie } from "@/utils/omdb";
 
 type MovieSearchResultsProps = {
   omdbMovies?: OmdbSearchMovie[];
+  hasSearched: boolean;
   addMovieToWannaSee: (imdbId: string) => void;
   addMovieToHaveSeen: (imdbId: string) => void;
 };
 const MovieSearchResults = ({
   omdbMovies,
+  hasSearched,
   addMovieToHaveSeen,
   addMovieToWannaSee,
 }: MovieSearchResultsProps) => {
-  if (!omdbMovies) return <div>No results</div>;
+  if (!hasSearched) return <></>;
+  if (!omdbMovies) return <div>No results found</div>;
 
   return (
     <div className="flex flex-row h-96 w-full overflow-x-auto p-3">

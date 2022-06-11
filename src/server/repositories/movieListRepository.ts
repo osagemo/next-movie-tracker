@@ -12,23 +12,27 @@ const movieListRepository = {
     if (userMovieListCount < 1) {
       this.createSystemMovieListsForUser(userId);
     }
-    const movieLists = await prisma.movieList.findMany({
-      where: {
-        users: {
-          some: {
-            userId: userId,
+    const movieLists = await prisma.movieList
+      .findMany({
+        where: {
+          users: {
+            some: {
+              userId: userId,
+            },
+          },
+          name: { startsWith: "system" },
+        },
+        include: {
+          movies: {
+            select: {
+              movie: true,
+            },
           },
         },
-        name: { startsWith: "system" },
-      },
-      include: {
-        movies: {
-          select: {
-            movie: true,
-          },
-        },
-      },
-    });
+      })
+      .catch((e) => {
+        throw new Error(e);
+      });
 
     // We need to flatten the response as "movies" from the include statement will refer to the many2many table
     const flattened = movieLists.map((list) => {
@@ -45,7 +49,7 @@ const movieListRepository = {
           users: {
             create: {
               addedAt: new Date(),
-              userId: userId ?? "", // userId is defined as per middleware
+              userId,
             },
           },
         },
@@ -57,7 +61,7 @@ const movieListRepository = {
           users: {
             create: {
               addedAt: new Date(),
-              userId: userId ?? "", // userId is defined as per middleware
+              userId,
             },
           },
         },

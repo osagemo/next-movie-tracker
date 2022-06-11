@@ -4,11 +4,16 @@ const omdbApiKey = process.env.NEXT_PUBLIC_OMDB_API_KEY;
 const baseUrl = `http://www.omdbapi.com?apikey=${omdbApiKey}`;
 
 const omdbApi = {
-  async findMovies(queryString: string, page: number = 1) {
+  async findMovies(
+    queryString: string,
+    page: number = 1
+  ): Promise<OmdbSearchMovie[]> {
     let url = `${baseUrl}&s=${queryString}&p=${page}`;
-    const response = await fetch(url);
+    const response = await fetch(url).catch((e) => console.error(e));
+    if (!response) throw "Failed to fetch movies from omdb";
     const responseJson = await response.json();
-    const foundMovies = responseJson.Search as OmdbSearchMovie[];
+
+    const foundMovies = responseJson!.Search as OmdbSearchMovie[];
     return foundMovies;
   },
   async findMovie(imdbId: string) {

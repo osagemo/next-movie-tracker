@@ -30,16 +30,22 @@ export const appRouter = createRouter()
       page: z.number().nullish(),
     }),
     async resolve({ input, ctx }) {
-      const foundMovies = await omdbApi.findMovies(input.queryString, input.page ?? 1)
+      const foundMovies = await omdbApi.findMovies(input.queryString.trimEnd(), input.page ?? 1).catch(e => console.error(e))
+      if (!foundMovies)
+       throw "Unable to find movies";
+
       return { result: foundMovies };
     },
   })
   .query("getDefaultMovieLists", {
-    async resolve({ input, ctx }) {
+    async resolve({ ctx }) {
       const userId = ctx.user?.id ?? ""; // userId will be defined, as verified by middleware
       const movieLists = await movieListRepository.getSystemMovieListsForUser(
         userId
-      );
+      ).catch(e => console.error(e));
+      if (!movieLists)
+        throw "Unable to get movie lists for user";
+
       return { movieLists };
     },
   })
