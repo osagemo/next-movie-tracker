@@ -18,15 +18,16 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
     refetchOnWindowFocus: false,
   });
 
-  const { data: searchResult } = trpc.useQuery(
-    ["searchMoviesByTitle", { queryString: queryString }],
-    {
-      refetchInterval: false,
-      refetchOnReconnect: false,
-      refetchOnWindowFocus: false,
-      enabled: Boolean(queryString), // disable until we have a value
-    }
-  );
+  const {
+    error: searchError,
+    isFetched: searchIsFetched,
+    data: searchResult,
+  } = trpc.useQuery(["searchMoviesByTitle", { queryString: queryString }], {
+    refetchInterval: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    enabled: Boolean(queryString), // disable until we have user input
+  });
   const addMovie = trpc.useMutation("addMovieToList", {
     async onSuccess() {
       await utils.invalidateQueries(["getDefaultMovieLists"]);
@@ -62,20 +63,15 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
       <div className="w-1/2 flex flex-col">
         <MovieSearch onSearchChange={setQueryString} />
         <MovieSearchResults
+          hasSearched={searchError != null || searchIsFetched}
           addMovieToHaveSeen={(imdbId) => addMovieToList(imdbId, "SEEN")}
           addMovieToWannaSee={(imdbId) => addMovieToList(imdbId, "WANNA")}
           omdbMovies={searchResult?.result}
         />
       </div>
-      <div className="p-5 flex justify-between items-center w-1/2 ">
-        <div>
-          <h3>{movieListsResponse.movieLists[0].name}</h3>
-          <MovieList movieList={movieListsResponse.movieLists[0]} />
-        </div>
-        <div>
-          <h3>{movieListsResponse.movieLists[1].name}</h3>
-          <MovieList movieList={movieListsResponse.movieLists[1]} />
-        </div>
+      <div className="p-5 mt-10 flex justify-between items-start w-1/2 ">
+        <MovieList movieList={movieListsResponse.movieLists[0]} />
+        <MovieList movieList={movieListsResponse.movieLists[1]} />
       </div>
     </>
   );
