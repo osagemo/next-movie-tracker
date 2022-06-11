@@ -1,6 +1,7 @@
 // Main App Router
 import * as trpc from "@trpc/server";
 import { z } from "zod";
+import superjson from "superjson";
 import { createRouter } from "../context";
 import movieListRepository from "../repositories/movieListRepository";
 import omdbApi from "../utils/omdbApi";
@@ -15,6 +16,7 @@ const AddMovie = z.object({
 export type AddMovie = z.infer<typeof AddMovie>;
 // prettier-ignore
 export const appRouter = createRouter()
+  .transformer(superjson)
   .middleware(async ({ ctx, next }) => {
     if (!ctx.user?.id)
       throw new trpc.TRPCError({
