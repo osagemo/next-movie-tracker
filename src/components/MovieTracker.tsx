@@ -7,27 +7,21 @@ import { MovieListType } from "@/server/utils/prisma";
 import MovieList from "./MovieList";
 import { OmdbSearchMovie } from "@/utils/omdb";
 import useMovieLists from "@/Hooks/UseMovieLists";
+import useOmdbMovieSearch from "@/Hooks/useOmdbMovieSearch";
 
 type MovieTrackerProps = {
   userName: string;
 };
 const MovieTracker = ({ userName }: MovieTrackerProps) => {
-  const [userQuery, setUserQuery] = useState("");
-
   const {
-    error: searchError,
-    isFetched: searchIsFetched,
-    data: searchResult,
-  } = trpc.useQuery(["searchMoviesByTitle", { userQuery: userQuery }], {
-    refetchInterval: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    retry: false,
-    enabled: Boolean(userQuery), // disable until we have user input
-  });
-
+    userQuery,
+    setUserQuery,
+    searchResult,
+    searchError,
+    searchIsFetched,
+  } = useOmdbMovieSearch();
   const { addMovieToList, movieListsResponse, pendingOmdbMovies } =
-    useMovieLists(searchResult?.result);
+    useMovieLists(searchResult);
 
   if (!movieListsResponse) return <div>Loading...</div>;
 
@@ -46,7 +40,7 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
           hasFetched={searchError != null || searchIsFetched}
           addMovieToHaveSeen={(imdbId) => addMovieToList(imdbId, "SEEN")}
           addMovieToWannaSee={(imdbId) => addMovieToList(imdbId, "WANNA")}
-          omdbMovies={searchResult?.result}
+          omdbMovies={searchResult}
         />
       </div>
       <div className="p-5 mt-10 flex justify-between items-start lg:w-2/3 w-full flex-2 min-h-0">
