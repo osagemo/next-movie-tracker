@@ -27,7 +27,7 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
 
   return (
     <>
-      <div className="w-full flex ml-5 mt-2 underline">
+      <div className="w-full flex pl-5 pt-2 underline">
         <button onClick={() => signOut()}>Sign Out</button>
       </div>
       <div className="text-center text-3xl flex-1">
