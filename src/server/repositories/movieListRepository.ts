@@ -27,6 +27,9 @@ const movieListRepository = {
             select: {
               movie: true,
             },
+            orderBy: {
+              addedAt: "desc",
+            },
           },
         },
       })

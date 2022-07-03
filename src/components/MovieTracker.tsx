@@ -5,73 +5,63 @@ import MovieSearch from "./MovieSearch";
 import MovieSearchResults from "./MovieSearchResults";
 import { MovieListType } from "@/server/utils/prisma";
 import MovieList from "./MovieList";
+import { OmdbSearchMovie } from "@/utils/omdb";
+import useMovieLists from "@/Hooks/UseMovieLists";
 
 type MovieTrackerProps = {
   userName: string;
 };
 const MovieTracker = ({ userName }: MovieTrackerProps) => {
-  const utils = trpc.useContext();
-  const [queryString, setQueryString] = useState("");
-  const { data: movieListsResponse } = trpc.useQuery(["getDefaultMovieLists"], {
-    refetchInterval: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-  });
+  const [userQuery, setUserQuery] = useState("");
 
   const {
     error: searchError,
     isFetched: searchIsFetched,
     data: searchResult,
-  } = trpc.useQuery(["searchMoviesByTitle", { queryString: queryString }], {
+  } = trpc.useQuery(["searchMoviesByTitle", { userQuery: userQuery }], {
     refetchInterval: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
-    enabled: Boolean(queryString), // disable until we have user input
-  });
-  const addMovie = trpc.useMutation("addMovieToList", {
-    async onSuccess() {
-      await utils.invalidateQueries(["getDefaultMovieLists"]);
-    },
+    retry: false,
+    enabled: Boolean(userQuery), // disable until we have user input
   });
 
-  if (!movieListsResponse) {
-    return <div>Loading...</div>;
-  }
+  const { addMovieToList, movieListsResponse, pendingOmdbMovies } =
+    useMovieLists(searchResult?.result);
 
-  const addMovieToList = async (
-    imdbId: string,
-    movieListType: MovieListType
-  ) => {
-    const movieListId = movieListsResponse?.movieLists.find(
-      (l) => l.listType === movieListType
-    )?.id;
-    if (!movieListId)
-      throw `No movie list found for specified list type: ${movieListType}`;
-
-    await addMovie.mutate({
-      imdbId,
-      movieListId,
-    });
-  };
+  if (!movieListsResponse) return <div>Loading...</div>;
 
   return (
     <>
-      <button onClick={() => signOut()}>Sign Out</button>
-      <div className="text-center text-3xl">
+      <div className="w-full flex ml-5 mt-2 underline">
+        <button onClick={() => signOut()}>Sign Out</button>
+      </div>
+      <div className="text-center text-3xl flex-1">
         <div>{userName}&apos;s Movie tracker</div>
       </div>
-      <div className="w-1/2 flex flex-col">
-        <MovieSearch onSearchChange={setQueryString} />
+      <div className={`lg:w-2/3 w-full flex flex-col flex-1`}>
+        <MovieSearch onSearchChange={setUserQuery} />
         <MovieSearchResults
-          hasSearched={searchError != null || searchIsFetched}
+          hasSearched={!!userQuery}
+          hasFetched={searchError != null || searchIsFetched}
           addMovieToHaveSeen={(imdbId) => addMovieToList(imdbId, "SEEN")}
           addMovieToWannaSee={(imdbId) => addMovieToList(imdbId, "WANNA")}
           omdbMovies={searchResult?.result}
         />
       </div>
-      <div className="p-5 mt-10 flex justify-between items-start w-1/2 ">
-        <MovieList movieList={movieListsResponse.movieLists[0]} />
-        <MovieList movieList={movieListsResponse.movieLists[1]} />
+      <div className="p-5 mt-10 flex justify-between items-start lg:w-2/3 w-full flex-2 min-h-0">
+        <MovieList
+          movieList={movieListsResponse.movieLists.find(
+            (m) => m.listType == "SEEN"
+          )}
+          pendingMovies={pendingOmdbMovies["SEEN"]}
+        />
+        <MovieList
+          movieList={movieListsResponse.movieLists.find(
+            (m) => m.listType == "WANNA"
+          )}
+          pendingMovies={pendingOmdbMovies["WANNA"]}
+        />
       </div>
     </>
   );

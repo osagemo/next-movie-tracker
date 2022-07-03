@@ -18,3 +18,6 @@ if (process.env.NODE_ENV !== "production") global.prisma = prisma;
 // Type helpers
 export type MovieListType = MovieList["listType"];
 export type MovieListWithMovies = MovieList & { movies: Movie[] };
+export type PartialMovieListWithMovies = Partial<MovieList> & {
+  movies: Partial<Movie>[];
+};

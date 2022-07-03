@@ -21,3 +21,21 @@ body {
   transition: 0.5s ease;
   background: rgba(0, 0, 0, 0.8);
 }
+
+.scrollbar::-webkit-scrollbar {
+  width: 18px;
+  height: 18px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  @apply bg-slate-800 rounded-md;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  border: 2px solid;
+  @apply rounded-md bg-slate-900 border-slate-700;
+}
+
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-700;
+}

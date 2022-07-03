@@ -26,11 +26,11 @@ export const appRouter = createRouter()
   })
   .query("searchMoviesByTitle", {
     input: z.object({
-      queryString: z.string().min(3),
+      userQuery: z.string().min(3),
       page: z.number().nullish(),
     }),
     async resolve({ input, ctx }) {
-      const foundMovies = await omdbApi.findMovies(input.queryString.trimEnd(), input.page ?? 1).catch(e => console.error(e))
+      const foundMovies = await omdbApi.findMovies(input.userQuery.trimEnd(), input.page ?? 1).catch(e => console.error(e))
       if (!foundMovies)
        throw "Unable to find movies";
 

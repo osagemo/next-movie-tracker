@@ -30,7 +30,8 @@ const MovieSearch = ({ onSearchChange }: MovieSearchProps) => {
 
   return (
     <input
-      className="text-black mx-auto"
+      className="text-black mx-auto my-2 px-1 rounded-sm"
+      placeholder="Search for movies"
       onChange={(e) => setSearchInput(e.currentTarget.value)}
     ></input>
   );
