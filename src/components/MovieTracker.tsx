@@ -6,7 +6,7 @@ import MovieSearchResults from "./MovieSearchResults";
 import { MovieListType } from "@/server/utils/prisma";
 import MovieList from "./MovieList";
 import { OmdbSearchMovie } from "@/utils/omdb";
-import useMovieLists from "@/Hooks/UseMovieLists";
+import useMovieLists from "@/Hooks/useMovieLists";
 import useOmdbMovieSearch from "@/Hooks/useOmdbMovieSearch";
 
 type MovieTrackerProps = {
