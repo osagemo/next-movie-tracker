@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import useMovieLists from "@/Hooks/useMovieLists";
 import { MovieListWithMovies } from "@/server/utils/prisma";
 import { OmdbSearchMovie } from "@/utils/omdb";
 import ScrollContainer from "react-indiana-drag-scroll";
@@ -7,8 +8,21 @@ import Spinner from "./Spinner";
 type MovieListProps = {
   movieList?: MovieListWithMovies;
   pendingMovies: OmdbSearchMovie[];
+  removeMovieFromList: (imdbId: string, movieListId: number) => Promise<void>;
+  moveMovieToSeenList?: (imdbId: string) => Promise<void>;
 };
-const MovieList = ({ movieList, pendingMovies }: MovieListProps) => {
+const MovieList = ({
+  movieList,
+  pendingMovies,
+  removeMovieFromList,
+  moveMovieToSeenList,
+}: MovieListProps) => {
+  const removeMovie = async (imdbId: string) => {
+    const movieListId = movieList?.id;
+    if (!movieListId) return;
+
+    await removeMovieFromList(imdbId, movieListId);
+  };
   const getListNameForType = (movieList: MovieListWithMovies) =>
     movieList.listType === "SEEN"
       ? "Have seen"
@@ -24,17 +38,19 @@ const MovieList = ({ movieList, pendingMovies }: MovieListProps) => {
       : "border-cyan-700";
 
   if (!movieList) return <div>Loading...</div>;
-
+  console.log(moveMovieToSeenList);
+  console.log(moveMovieToSeenList != undefined);
   const renderMovie = (
     id: string | number,
     imageUrl: string,
     title: string,
     loading: boolean,
+    imdbId: string,
     releaseDateUtc?: Date
   ) => (
     <div
       key={id}
-      className={`flex items-center border-l-4 shadow-lg p-2 ${borderColorForType(
+      className={`flex items-center border-l-4 shadow-lg p-2 hover-target relative ${borderColorForType(
         movieList
       )}`}
     >
@@ -64,6 +80,39 @@ const MovieList = ({ movieList, pendingMovies }: MovieListProps) => {
           </div>
         )}
       </div>
+      <div className="hover-buttons w-1/4 h-full absolute left-3/4 flex items-center justify-between">
+        {moveMovieToSeenList != undefined && (
+          <button
+            type="button"
+            onClick={(e) => moveMovieToSeenList(imdbId)}
+            className="text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:outline-none focus:ring-emerald-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800"
+          >
+            <svg
+              aria-hidden="true"
+              className="w-4 h-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                clipRule="evenodd"
+                transform="scale(-1 1) translate(-20 0)"
+              ></path>
+            </svg>
+            <span className="sr-only">Icon description</span>
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={(e) => removeMovie(imdbId)}
+          className="ml-auto text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-2.5 text-center inline-flex items-center mr-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+        >
+          <span className="w-4 h-4 leading-4 text-m">×</span>
+          <span className="sr-only">Icon description</span>
+        </button>
+      </div>
     </div>
   );
 
@@ -77,7 +126,13 @@ const MovieList = ({ movieList, pendingMovies }: MovieListProps) => {
         className="overflow-y-auto scrollbar flex-auto max-h-[95%]"
       >
         {pendingMovies.map((omdbMovie) =>
-          renderMovie(omdbMovie.imdbID, omdbMovie.Poster, omdbMovie.Title, true)
+          renderMovie(
+            omdbMovie.imdbID,
+            omdbMovie.Poster,
+            omdbMovie.Title,
+            true,
+            omdbMovie.imdbID
+          )
         )}
         {movieList.movies.map((movie) =>
           renderMovie(
@@ -85,6 +140,7 @@ const MovieList = ({ movieList, pendingMovies }: MovieListProps) => {
             movie.imageUrl,
             movie.title,
             false,
+            movie.imdbId,
             movie.releaseDateUtc
           )
         )}

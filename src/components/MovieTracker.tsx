@@ -20,8 +20,13 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
     searchError,
     searchIsFetched,
   } = useOmdbMovieSearch();
-  const { addMovieToList, movieListsResponse, pendingOmdbMovies } =
-    useMovieLists(searchResult);
+  const {
+    addMovieToList,
+    movieListsResponse,
+    pendingOmdbMovies,
+    removeMovieFromList,
+    moveMovieToSeenList,
+  } = useMovieLists(searchResult);
 
   if (!movieListsResponse) return <div>Loading...</div>;
 
@@ -45,12 +50,15 @@ const MovieTracker = ({ userName }: MovieTrackerProps) => {
       </div>
       <div className="p-5 mt-10 flex justify-between items-start lg:w-2/3 w-full flex-2 min-h-0">
         <MovieList
+          removeMovieFromList={removeMovieFromList}
           movieList={movieListsResponse.movieLists.find(
             (m) => m.listType == "SEEN"
           )}
           pendingMovies={pendingOmdbMovies["SEEN"]}
         />
         <MovieList
+          removeMovieFromList={removeMovieFromList}
+          moveMovieToSeenList={moveMovieToSeenList}
           movieList={movieListsResponse.movieLists.find(
             (m) => m.listType == "WANNA"
           )}

@@ -12,11 +12,11 @@ body {
   @apply bg-blue-700;
 }
 
-.movie-search-result:hover .movie-buttons {
+.hover-target:hover .hover-buttons {
   opacity: 1;
 }
 
-.movie-buttons {
+.hover-buttons {
   opacity: 0;
   transition: 0.5s ease;
   background: rgba(0, 0, 0, 0.8);

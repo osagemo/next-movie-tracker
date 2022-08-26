@@ -64,10 +64,56 @@ const useMovieLists = (searchResult?: OmdbSearchMovie[]) => {
     },
   });
 
+  const removeMovieFromList = async (imdbId: string, movieListId: number) => {
+    await removeMovie.mutate({ imdbId, movieListId });
+  };
+
+  const removeMovie = trpc.useMutation("removeMovieFromList", {
+    async onSuccess(data, { imdbId, movieListId }) {
+      await utils.invalidateQueries(["getDefaultMovieLists"]);
+      const omdbMovie = searchResult?.find((m) => m.imdbID == imdbId);
+      omdbMovie && removePendingMovie(omdbMovie.imdbID);
+    },
+    async onError(error, { imdbId }) {
+      console.error(error);
+      const omdbMovie = searchResult?.find((m) => m.imdbID == imdbId);
+      omdbMovie && removePendingMovie(omdbMovie.imdbID);
+    },
+  });
+
+  const moveMovieToList = trpc.useMutation("moveMovieToList", {
+    async onSuccess(data, { imdbId }) {
+      await utils.invalidateQueries(["getDefaultMovieLists"]);
+      const omdbMovie = searchResult?.find((m) => m.imdbID == imdbId);
+      omdbMovie && removePendingMovie(omdbMovie.imdbID);
+    },
+    async onError(error, { imdbId }) {
+      console.error(error);
+      const omdbMovie = searchResult?.find((m) => m.imdbID == imdbId);
+      omdbMovie && removePendingMovie(omdbMovie.imdbID);
+    },
+  });
+  const moveMovieToSeenList = async (imdbId: string) => {
+    const movieLists = movieListsResponse?.movieLists;
+
+    const wannaSeeList = movieLists?.find((l) => l.listType === "WANNA");
+    const haveSeenList = movieLists?.find((l) => l.listType === "SEEN");
+
+    if (!wannaSeeList || !haveSeenList) return;
+
+    return await moveMovieToList.mutate({
+      imdbId,
+      sourceListId: wannaSeeList.id,
+      targetListId: haveSeenList.id,
+    });
+  };
+
   return {
     addMovieToList,
     pendingOmdbMovies,
     movieListsResponse,
+    removeMovieFromList,
+    moveMovieToSeenList,
   };
 };
 

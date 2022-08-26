@@ -65,7 +65,30 @@ export const appRouter = createRouter()
         },
         input.movieListId
       );
-    },
-  });
+    }})
+    .mutation("removeMovieFromList", {
+      input: z.object({
+        movieListId: z.number(),
+        imdbId: z.string()
+      }),
+      async resolve({input, ctx}) {
+        const movieId = await movieListRepository.removeMovieFromList(input.imdbId, input.movieListId);
+
+        return movieId;
+      }
+    })
+    .mutation("moveMovieToList", {
+      input: z.object({
+        imdbId: z.string(),
+        sourceListId: z.number(),
+        targetListId: z.number(),
+      }),
+      async resolve({input, ctx}) {
+        const removedMovie = await movieListRepository.removeMovieFromList(input.imdbId, input.sourceListId);
+        const addedMovie = await movieListRepository.addExistingMovieToList(removedMovie.movieId, input.targetListId);
+
+        return addedMovie.movieId;
+      }
+    });
 
 export type AppRouter = typeof appRouter;

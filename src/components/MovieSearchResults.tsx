@@ -27,11 +27,12 @@ const MovieSearchResults = ({
       {!hasFetched && (
         <Spinner additionalClasses={"w-16 h-16 mx-auto my-auto"} />
       )}
+
       {hasFetched &&
         (omdbMovies?.map((movie) => (
           <div
             key={movie.imdbID}
-            className="flex-none text-center mr-10 h-full relative movie-search-result"
+            className="flex-none text-center mr-10 h-full relative hover-target"
           >
             {movie.Poster == "N/A" ? (
               <div
@@ -44,7 +45,7 @@ const MovieSearchResults = ({
               // eslint-disable-next-line @next/next/no-img-element
               <img className="h-full" src={movie.Poster} alt="poster"></img>
             )}
-            <div className="movie-buttons absolute top-0 w-full flex justify-between p-2">
+            <div className="hover-buttons absolute top-0 w-full flex justify-between p-2">
               <button
                 className="bg-emerald-700 p-2 rounded"
                 onClick={() => addMovieToHaveSeen(movie.imdbID)}
